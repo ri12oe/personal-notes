@@ -2,6 +2,15 @@
 
 A personal notes app built with Expo, Expo Router, Firebase Authentication and Cloud Firestore.
 
+## Screenshots
+
+<p>
+  <img src="./screenshots/IMG_1283.PNG" alt="Sign-in screen" width="200" />
+  <img src="./screenshots/IMG_1284.PNG" alt="Notes list" width="200" />
+  <img src="./screenshots/IMG_1285.PNG" alt="Note actions" width="200" />
+  <img src="./screenshots/IMG_1286.PNG" alt="New note form" width="200" />
+</p>
+
 ## Features
 
 - Email/password sign up, login and logout
