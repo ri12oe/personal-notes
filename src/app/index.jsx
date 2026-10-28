@@ -23,7 +23,9 @@ import NoteModal from "../components/NoteModal";
 import { auth } from "../firebase/firebaseConfig";
 import {
   createNote,
+  permanentlyRemoveNote,
   removeNote,
+  restoreNote,
   subscribeToNotes,
   updateNote,
 } from "../services/noteService";
@@ -50,7 +52,9 @@ function authErrorMessage(error) {
 }
 
 function confirmDelete(note, onConfirm) {
-  const message = `Delete "${note.title}"? This can't be undone.`;
+  const message = note.deleted
+    ? `Permanently delete "${note.title}"? This can't be undone.`
+    : `Move "${note.title}" to Delete? You can restore it later.`;
   if (Platform.OS === "web") {
     if (window.confirm(message)) onConfirm();
     return;
@@ -122,7 +126,27 @@ export default function HomeScreen() {
   }
 
   function deleteNote(note) {
-    confirmDelete(note, () => removeNote(note.id).catch(console.log));
+    confirmDelete(note, async () => {
+      try {
+        if (note.deleted) {
+          await permanentlyRemoveNote(note.id);
+        } else {
+          await removeNote(note.id);
+        }
+      } catch (error) {
+        console.log(error);
+        Alert.alert("Error", "Could not delete the note.");
+      }
+    });
+  }
+
+  async function handleRestoreNote(note) {
+    try {
+      await restoreNote(note.id);
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error", "Could not restore the note.");
+    }
   }
 
   async function handleAuth(action) {
@@ -190,9 +214,14 @@ export default function HomeScreen() {
     );
   }
 
-  const favoriteCount = notes.filter((note) => note.favorite).length;
+  const activeNotes = notes.filter((note) => !note.deleted);
+  const favoriteCount = activeNotes.filter((note) => note.favorite).length;
   const visibleNotes =
-    filter === "Favorites" ? notes.filter((note) => note.favorite) : notes;
+    filter === "Delete"
+      ? notes.filter((note) => note.deleted)
+      : filter === "Favorites"
+        ? activeNotes.filter((note) => note.favorite)
+        : activeNotes;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -201,7 +230,7 @@ export default function HomeScreen() {
           <View>
             <Text style={styles.title}>My Notes</Text>
             <Text style={styles.subtitle}>
-              {notes.length} {notes.length === 1 ? "note" : "notes"} ·{" "}
+              {activeNotes.length} {activeNotes.length === 1 ? "note" : "notes"} ·{" "}
               {favoriteCount} {favoriteCount === 1 ? "favorite" : "favorites"}
             </Text>
           </View>
@@ -222,6 +251,11 @@ export default function HomeScreen() {
             onPress={() => setFilter("All")}
           />
           <FilterButton
+            title="Delete"
+            active={filter === "Delete"}
+            onPress={() => setFilter("Delete")}
+          />
+          <FilterButton
             title="Favorites"
             active={filter === "Favorites"}
             onPress={() => setFilter("Favorites")}
@@ -236,15 +270,18 @@ export default function HomeScreen() {
               onToggleFavorite={toggleFavorite}
               onEdit={openEditModal}
               onDelete={deleteNote}
+              onRestore={handleRestoreNote}
             />
           )}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <Text style={styles.emptyText}>
-              {filter === "Favorites"
-                ? "No favorite notes yet. Tap the star on a note."
-                : "No notes yet. Tap + to write your first note."}
+              {filter === "Delete"
+                ? "No deleted notes. Deleted notes will appear here."
+                : filter === "Favorites"
+                  ? "No favorite notes yet. Tap the star on a note."
+                  : "No notes yet. Tap + to write your first note."}
             </Text>
           }
         />

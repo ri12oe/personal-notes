@@ -19,6 +19,7 @@ export async function createNote({ title, content, type }, userId) {
     content,
     type,
     favorite: false,
+    deleted: false,
     createdAt: serverTimestamp(),
     userId,
   });
@@ -44,5 +45,13 @@ export async function updateNote(noteId, updates) {
 }
 
 export async function removeNote(noteId) {
+  await updateNote(noteId, { deleted: true });
+}
+
+export async function restoreNote(noteId) {
+  await updateNote(noteId, { deleted: false });
+}
+
+export async function permanentlyRemoveNote(noteId) {
   await deleteDoc(doc(notesCollection, noteId));
 }

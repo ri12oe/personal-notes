@@ -12,7 +12,13 @@ function formatDate(createdAt) {
   });
 }
 
-export default function NoteCard({ note, onToggleFavorite, onEdit, onDelete }) {
+export default function NoteCard({
+  note,
+  onToggleFavorite,
+  onEdit,
+  onDelete,
+  onRestore,
+}) {
   const swipeableRef = useRef(null);
 
   function runAction(action) {
@@ -23,37 +29,54 @@ export default function NoteCard({ note, onToggleFavorite, onEdit, onDelete }) {
   function renderRightActions() {
     return (
       <View style={styles.actions}>
-        <Pressable
-          style={[styles.actionButton, styles.favoriteButton]}
-          onPress={() => runAction(onToggleFavorite)}
-          accessibilityLabel={
-            note.favorite ? "Remove from favorites" : "Add to favorites"
-          }
-        >
-          <Ionicons
-            name={note.favorite ? "star" : "star-outline"}
-            size={22}
-            color="#ffffff"
-          />
-          <Text style={styles.actionText}>
-            {note.favorite ? "Unfavorite" : "Favorite"}
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.actionButton, styles.editButton]}
-          onPress={() => runAction(onEdit)}
-          accessibilityLabel="Edit note"
-        >
-          <Ionicons name="create-outline" size={22} color="#ffffff" />
-          <Text style={styles.actionText}>Edit</Text>
-        </Pressable>
+        {note.deleted ? (
+          <Pressable
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => runAction(onRestore)}
+            accessibilityLabel="Restore note"
+          >
+            <Ionicons name="refresh-outline" size={22} color="#ffffff" />
+            <Text style={styles.actionText}>Restore</Text>
+          </Pressable>
+        ) : (
+          <>
+            <Pressable
+              style={[styles.actionButton, styles.favoriteButton]}
+              onPress={() => runAction(onToggleFavorite)}
+              accessibilityLabel={
+                note.favorite ? "Remove from favorites" : "Add to favorites"
+              }
+            >
+              <Ionicons
+                name={note.favorite ? "star" : "star-outline"}
+                size={22}
+                color="#ffffff"
+              />
+              <Text style={styles.actionText}>
+                {note.favorite ? "Unfavorite" : "Favorite"}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.actionButton, styles.editButton]}
+              onPress={() => runAction(onEdit)}
+              accessibilityLabel="Edit note"
+            >
+              <Ionicons name="create-outline" size={22} color="#ffffff" />
+              <Text style={styles.actionText}>Edit</Text>
+            </Pressable>
+          </>
+        )}
         <Pressable
           style={[styles.actionButton, styles.deleteButton]}
           onPress={() => runAction(onDelete)}
-          accessibilityLabel="Delete note"
+          accessibilityLabel={
+            note.deleted ? "Permanently delete note" : "Delete note"
+          }
         >
           <Ionicons name="trash-outline" size={22} color="#ffffff" />
-          <Text style={styles.actionText}>Delete</Text>
+          <Text style={styles.actionText}>
+            {note.deleted ? "Delete forever" : "Delete"}
+          </Text>
         </Pressable>
       </View>
     );

@@ -16,9 +16,10 @@ A personal notes app built with Expo, Expo Router, Firebase Authentication and C
 - Email/password sign up, login and logout
 - Notes (title, content, type, creation date) stored in Firestore, visible only to their owner
 - Categorize notes as School, Work, Personal, or a custom type
-- Create, edit and delete notes (delete asks for confirmation)
-- Mark notes as favorites and filter between All / Favorites
-- Total note count in the header
+- Create, edit and move notes to trash (delete asks for confirmation)
+- Filter between All / Delete / Favorites; swipe left in Delete to restore or permanently delete a note
+- Mark notes as favorites; deleted notes stay out of All, Favorites and the header counts
+- Total active note count in the header
 
 ## Setup
 
@@ -51,5 +52,6 @@ A personal notes app built with Expo, Expo Router, Firebase Authentication and C
 | `content`   | string    |
 | `type`      | string    |
 | `favorite`  | boolean   |
+| `deleted`   | boolean (missing on older notes means not deleted) |
 | `createdAt` | timestamp |
 | `userId`    | string    |
