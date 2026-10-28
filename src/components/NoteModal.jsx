@@ -5,22 +5,35 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 
+const NOTE_TYPES = ["School", "Work", "Personal", "Custom"];
+
 export default function NoteModal({ visible, note, onClose, onSave }) {
   const [title, setTitle] = useState(note ? note.title : "");
   const [content, setContent] = useState(note ? note.content : "");
+  const savedType = note?.type || "Personal";
+  const isSavedTypeCustom = !NOTE_TYPES.slice(0, 3).includes(savedType);
+  const [type, setType] = useState(isSavedTypeCustom ? "Custom" : savedType);
+  const [customType, setCustomType] = useState(
+    isSavedTypeCustom ? savedType : "",
+  );
   const editing = note != null;
 
   function handleSave() {
-    if (!title.trim()) {
+    if (!title.trim() || (type === "Custom" && !customType.trim())) {
       return;
     }
-    onSave({ title: title.trim(), content: content.trim() });
+    onSave({
+      title: title.trim(),
+      content: content.trim(),
+      type: type === "Custom" ? customType.trim() : type,
+    });
   }
 
   return (
@@ -36,47 +49,96 @@ export default function NoteModal({ visible, note, onClose, onSave }) {
       >
         <Pressable style={styles.background} onPress={onClose} />
         <View style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              {editing ? "Edit Note" : "New Note"}
-            </Text>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={18} color="#555555" />
-            </Pressable>
-          </View>
-
-          <Text style={styles.label}>TITLE</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Note title..."
-            placeholderTextColor="#aaa"
-            value={title}
-            onChangeText={setTitle}
-          />
-
-          <Text style={styles.label}>CONTENT</Text>
-          <TextInput
-            style={[styles.input, styles.contentInput]}
-            placeholder="Write your note..."
-            placeholderTextColor="#aaa"
-            value={content}
-            onChangeText={setContent}
-            multiline
-            textAlignVertical="top"
-          />
-
-          <Pressable
-            style={[styles.saveButton, !title.trim() && styles.saveDisabled]}
-            onPress={handleSave}
-            disabled={!title.trim()}
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.saveButtonText}>
-              {editing ? "Save Changes" : "Add Note"}
-            </Text>
-          </Pressable>
-          <Pressable style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </Pressable>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editing ? "Edit Note" : "New Note"}
+              </Text>
+              <Pressable style={styles.closeButton} onPress={onClose}>
+                <Ionicons name="close" size={18} color="#555555" />
+              </Pressable>
+            </View>
+
+            <Text style={styles.label}>TITLE</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Note title..."
+              placeholderTextColor="#aaa"
+              value={title}
+              onChangeText={setTitle}
+            />
+
+            <Text style={styles.label}>TYPE</Text>
+            <View style={styles.typeOptions}>
+              {NOTE_TYPES.map((noteType) => (
+                <Pressable
+                  key={noteType}
+                  style={[
+                    styles.typeOption,
+                    type === noteType && styles.typeOptionSelected,
+                  ]}
+                  onPress={() => setType(noteType)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: type === noteType }}
+                >
+                  <Text
+                    style={[
+                      styles.typeOptionText,
+                      type === noteType && styles.typeOptionTextSelected,
+                    ]}
+                  >
+                    {noteType}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {type === "Custom" && (
+              <TextInput
+                style={styles.input}
+                placeholder="Custom type..."
+                placeholderTextColor="#aaa"
+                value={customType}
+                onChangeText={setCustomType}
+                accessibilityLabel="Custom note type"
+                returnKeyType="done"
+              />
+            )}
+
+            <Text style={styles.label}>CONTENT</Text>
+            <TextInput
+              style={[styles.input, styles.contentInput]}
+              placeholder="Write your note..."
+              placeholderTextColor="#aaa"
+              value={content}
+              onChangeText={setContent}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <Pressable
+              style={[
+                styles.saveButton,
+                (!title.trim() ||
+                  (type === "Custom" && !customType.trim())) &&
+                  styles.saveDisabled,
+              ]}
+              onPress={handleSave}
+              disabled={
+                !title.trim() || (type === "Custom" && !customType.trim())
+              }
+            >
+              <Text style={styles.saveButtonText}>
+                {editing ? "Save Changes" : "Add Note"}
+              </Text>
+            </Pressable>
+            <Pressable style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </Pressable>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -101,6 +163,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 22,
     paddingBottom: 36,
+    maxHeight: "90%",
   },
 
   modalHeader: {
@@ -141,6 +204,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#222222",
     marginBottom: 18,
+  },
+
+  typeOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 14,
+  },
+
+  typeOption: {
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    backgroundColor: "#ffffff",
+  },
+
+  typeOptionSelected: {
+    borderColor: "#3478f6",
+    backgroundColor: "#edf4ff",
+  },
+
+  typeOptionText: {
+    color: "#666666",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+
+  typeOptionTextSelected: {
+    color: "#3478f6",
+    fontWeight: "600",
   },
 
   contentInput: {

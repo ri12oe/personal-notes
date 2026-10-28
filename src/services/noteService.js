@@ -13,10 +13,11 @@ import { db } from "../firebase/firebaseConfig";
 
 const notesCollection = collection(db, "notes");
 
-export async function createNote({ title, content }, userId) {
+export async function createNote({ title, content, type }, userId) {
   await addDoc(notesCollection, {
     title,
     content,
+    type,
     favorite: false,
     createdAt: serverTimestamp(),
     userId,

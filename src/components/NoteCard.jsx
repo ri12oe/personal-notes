@@ -73,6 +73,13 @@ export default function NoteCard({ note, onToggleFavorite, onEdit, onDelete }) {
             <Text style={styles.title} numberOfLines={1}>
               {note.title}
             </Text>
+            {!!note.type && (
+              <View style={styles.typeBadge}>
+                <Text style={styles.typeText} numberOfLines={1}>
+                  {note.type}
+                </Text>
+              </View>
+            )}
             {note.favorite && (
               <Ionicons name="star" size={15} color="#f5b301" />
             )}
@@ -121,6 +128,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#292929",
+  },
+  typeBadge: {
+    maxWidth: 100,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 9,
+    backgroundColor: "#edf4ff",
+  },
+  typeText: {
+    color: "#3478f6",
+    fontSize: 10,
+    fontWeight: "600",
   },
   preview: {
     fontSize: 13,
